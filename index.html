@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Image Resizer</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .width-control {
+            margin-bottom: 20px;
+        }
+
+        .width-control input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .textarea-container {
+            margin-bottom: 20px;
+        }
+
+        .output-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .copy-button {
+            padding: 4px 12px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .copy-button:hover {
+            background-color: #e0e0e0;
+        }
+
+        hr {
+            margin: 40px 0 20px;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+
+        .footer {
+            text-align: left;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .footer a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        textarea {
+            width: calc(100% - 24px);
+            height: 200px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        #htmlOutput {
+            background-color: #f8f8f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GitHub Markdown Image Resizer</h1>
+
+        <div class="width-control">
+            <label for="imageWidth">Image width:</label>
+            <input type="number" id="imageWidth" value="300">
+        </div>
+
+        <div class="textarea-container">
+            <label for="markdownInput">Insert Markdown:</label>
+            <textarea id="markdownInput" placeholder="Paste your markdown images here..."></textarea>
+        </div>
+
+        <div class="textarea-container">
+            <div class="output-header">
+                <label for="htmlOutput">HTML Output:</label>
+                <button class="copy-button" id="copyButton">Copy</button>
+            </div>
+            <textarea id="htmlOutput" readonly></textarea>
+        </div>
+
+        <hr>
+        <div class="footer">
+            <a href="https://github.com/cdeutsch/markdown-image-resize">Project on GitHub</a>
+            <a href="https://github.com/cdeutsch">@cdeutsch</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const markdownInput = document.getElementById('markdownInput');
+            const htmlOutput = document.getElementById('htmlOutput');
+            const imageWidth = document.getElementById('imageWidth');
+            const copyButton = document.getElementById('copyButton');
+
+            // Load saved width from localStorage or default to 300
+            const savedWidth = localStorage.getItem('preferredImageWidth');
+            if (savedWidth) {
+                imageWidth.value = savedWidth;
+            }
+
+            const convertMarkdownToHtml = () => {
+                const markdown = markdownInput.value;
+                const width = imageWidth.value;
+
+                // Regular expression to match markdown image syntax
+                const imageRegex = /!\[(.*?)\]\((.*?)\)/g;
+
+                // Convert each markdown image to HTML
+                const htmlImages = markdown.match(imageRegex)?.map(image => {
+                    const [, alt, url] = image.match(/!\[(.*?)\]\((.*?)\)/) || [];
+                    return `<img src="${url}" alt="${alt}" width="${width}">`;
+                }) || [];
+
+                // Join the HTML images with newlines
+                htmlOutput.value = htmlImages.join('\n');
+            };
+
+            // Save width to localStorage when changed
+            imageWidth.addEventListener('change', () => {
+                localStorage.setItem('preferredImageWidth', imageWidth.value);
+            });
+
+            // Copy button functionality
+            copyButton.addEventListener('click', () => {
+                htmlOutput.select();
+                document.execCommand('copy');
+
+                // Visual feedback
+                const originalText = copyButton.textContent;
+                copyButton.textContent = 'Copied!';
+                setTimeout(() => {
+                    copyButton.textContent = originalText;
+                }, 1500);
+            });
+
+            // Add event listeners
+            markdownInput.addEventListener('input', convertMarkdownToHtml);
+            imageWidth.addEventListener('input', convertMarkdownToHtml);
+
+            markdownInput.placeholder = `Paste your markdown images here...\n\n![Screenshot_1738161977](https://github.com/user-attachments/assets/126a9e71-3f02-4961-8122-681b63711977)`;
+        });
+    </script>
+</body>
+</html>
